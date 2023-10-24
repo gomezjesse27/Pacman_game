@@ -4,8 +4,8 @@ import sys
 from maze import maze_layout, draw_maze, get_nodes, TILE_SIZE
 from pacman import PacMan
 
-SCREEN_WIDTH = len(maze_layout[0]) * TILE_SIZE
-SCREEN_HEIGHT = len(maze_layout[1]) * TILE_SIZE
+SCREEN_WIDTH = len(maze_layout[0]) * TILE_SIZE +150
+SCREEN_HEIGHT = len(maze_layout[1]) * TILE_SIZE +100
 
 
 def game_loop():
@@ -33,9 +33,13 @@ def game_loop():
         if current_direction:
             current_time = pygame.time.get_ticks()
             if current_time - move_timer > move_delay:
+
                 pacman_instance.move(current_direction)
                 move_timer = current_time
-        
+        # Update the power-up status of Pac-Man
+        pacman_instance.update_power_up_status()
+        score_text = pygame.font.SysFont(None, 36).render(f"Score: {pacman_instance.score}", True, (255, 255, 255))
+        screen.blit(score_text, (460, 10))  # Display the score at the top left corner
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
@@ -55,33 +59,4 @@ def game_loop():
                 sys.exit()
                 
         pygame.display.flip()
-
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    
-    # Create PacMan instance
-    pacman_instance = PacMan(screen, get_nodes(), maze_layout)
-    
-    running = True
-    while running:
-        screen.fill((0, 0, 0))  # Clear the screen
         
-        # Draw the maze
-        draw_maze(screen, maze_layout)
-        pacman_instance.draw()  # Draw Pac-Man on the screen
-        
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    pacman_instance.move('UP')
-                elif event.key == pygame.K_DOWN:
-                    pacman_instance.move('DOWN')
-                elif event.key == pygame.K_LEFT:
-                    pacman_instance.move('LEFT')
-                elif event.key == pygame.K_RIGHT:
-                    pacman_instance.move('RIGHT')
-            if event.type == pygame.QUIT:
-                running = False
-                pygame.quit()
-                sys.exit()
-                
-        pygame.display.flip()

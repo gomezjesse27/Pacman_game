@@ -1,6 +1,7 @@
 
 import pygame
 
+
 TILE_SIZE = 20  # Size of each tile in pixels
 SPEED = 5  # Pixels per frame
 
@@ -52,57 +53,16 @@ class ImageManager:
 
 
 
-
-
-class ImageManager:
-    def __init__(self, image_path, sheet=True, pos_offsets=None, resize=None, reversible=False, animation_delay=100, repeat=True):
-        self.image = pygame.image.load(image_path)
-        self.sheet = sheet
-        self.pos_offsets = pos_offsets
-        self.resize = resize
-        self.reversible = reversible
-        self.animation_delay = animation_delay
-        self.repeat = repeat
-        self.image_index = 0
-        self.last_update = pygame.time.get_ticks()
-        self.images = self.load_images()
-        
-    def load_images(self):
-        images = []
-        for offset in self.pos_offsets:
-            sub_image = self.image.subsurface(pygame.Rect(offset))
-            if self.resize:
-                sub_image = pygame.transform.scale(sub_image, self.resize)
-            images.append(sub_image)
-        if self.reversible:
-            reversed_images = [pygame.transform.flip(img, True, False) for img in images]
-            images.extend(reversed_images)
-        return images
-        
-    def next_image(self, direction=None):
-        now = pygame.time.get_ticks()
-        if now - self.last_update > self.animation_delay:
-            self.last_update = now
-            self.image_index += 1
-            if self.image_index >= len(self.images): 
-                if self.repeat:
-                    self.image_index = 0
-                else:
-                    self.image_index = len(self.images) - 1
-                    
-
-
-            return self.images[self.image_index], None 
-
-            return self.images[self.image_index], None 
-
-        return self.images[self.image_index], None
-
 class PacMan:
     def __init__(self, screen, nodes, maze_layout):
         self.screen = screen
         self.nodes = nodes
         self.image = pygame.image.load('pacman.png')
+        self.score = 0
+        self.layout = maze_layout
+        self.powered_up = False
+        self.powered_up_duration = 5000
+        self.power_up_timer = None
         
         # Load the vertical and horizontal animation sprites
         self.image_horiz = pygame.transform.scale(pygame.image.load('pacman-horiz.png'), (TILE_SIZE, TILE_SIZE))
@@ -197,3 +157,16 @@ class PacMan:
                 if self.rect.centery <= self.target[1]:
                     self.rect.centery = self.target[1]
                     self.target = None
+        x, y = self.rect.centerx // TILE_SIZE, self.rect.centery // TILE_SIZE
+        if self.layout[y][x] == "*":
+            self.score += 10  # Increase the score by 10
+            self.layout[y][x] = "."  # Remove the pellet from the maze layout
+        if self.layout[y][x] == "@":
+            self.score += 50  # Increase the score by 10
+            self.layout[y][x] = "."  # Remove the pellet from the maze layout
+            self.powered_up = True
+            self.power_up_timer = pygame.time.get_ticks()  # Start the timer
+
+    def update_power_up_status(self):
+        if self.powered_up and pygame.time.get_ticks() - self.power_up_timer > self.powered_up_duration:
+            self.powered_up = False

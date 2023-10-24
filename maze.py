@@ -1,6 +1,7 @@
 
 import pygame
 
+
 # Maze symbols
 WALL = "x"
 EMPTY = "."
