@@ -3,6 +3,7 @@ import pygame
 import sys
 from maze import maze_layout, draw_maze, get_nodes, TILE_SIZE
 from pacman import PacMan
+from ghosts import Blinky, Pinky, Inky, Clyde
 
 SCREEN_WIDTH = len(maze_layout[0]) * TILE_SIZE +150
 SCREEN_HEIGHT = len(maze_layout[1]) * TILE_SIZE +100
@@ -13,7 +14,10 @@ def game_loop():
     
     # Create PacMan instance
     pacman_instance = PacMan(screen, get_nodes(), maze_layout)
-    
+    Inky_instance = Inky(screen, get_nodes(), maze_layout, (11,11))
+    Pinky_instance = Pinky(screen, get_nodes(), maze_layout, (10,11))
+    Blinky_instance = Blinky(screen, get_nodes(), maze_layout, (9,11))
+    Clyde_instance = Clyde(screen, get_nodes(), maze_layout, (12,11))
     # Store the current direction of Pac-Man
     current_direction = None
     
@@ -28,12 +32,23 @@ def game_loop():
         # Draw the maze
         draw_maze(screen, maze_layout)
         pacman_instance.draw()  # Draw Pac-Man on the screen
-        
+        Inky_instance.draw()
+        Pinky_instance.draw()
+        Blinky_instance.draw()
+        Clyde_instance.draw()
+        Inky_instance.target = pacman_instance.rect.topleft
+        Inky_instance.move()
+        Pinky_instance.target = pacman_instance.rect.topleft
+        Pinky_instance.move()
+        Blinky_instance.target = pacman_instance.rect.topleft
+        Blinky_instance.move()
+        Clyde_instance.target = pacman_instance.rect.topleft
+        Clyde_instance.move()
         # Move Pac-Man in the current direction (if any) with a delay
         if current_direction:
             current_time = pygame.time.get_ticks()
             if current_time - move_timer > move_delay:
-
+                
                 pacman_instance.move(current_direction)
                 move_timer = current_time
         # Update the power-up status of Pac-Man

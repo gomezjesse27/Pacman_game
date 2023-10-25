@@ -108,6 +108,7 @@ class PacMan:
                 if tile == "p":
                     self.rect.topleft = (x * TILE_SIZE, y * TILE_SIZE)
                     break
+    #def eat (self):
 
     def draw(self):
         self.screen.blit(self.image, self.rect.topleft)

@@ -36,13 +36,13 @@ class Ghost:
         x, y = self.rect.topleft
 
         # Check possible moves based on the current direction
-        if self.direction != DOWN and self.maze_layout[y-1][x] != '#':
+        if y-1 >= 0 and self.direction != DOWN and self.maze_layout[y-1][x] != '#':
             possible_moves.append(UP)
-        if self.direction != UP and self.maze_layout[y+1][x] != '#':
+        if y+1 < len(self.maze_layout) and self.direction != UP and self.maze_layout[y+1][x] != '#':
             possible_moves.append(DOWN)
-        if self.direction != RIGHT and self.maze_layout[y][x-1] != '#':
+        if x-1 >= 0 and self.direction != RIGHT and self.maze_layout[y][x-1] != '#':
             possible_moves.append(LEFT)
-        if self.direction != LEFT and self.maze_layout[y][x+1] != '#':
+        if x+1 < len(self.maze_layout[0]) and self.direction != LEFT and self.maze_layout[y][x+1] != '#':
             possible_moves.append(RIGHT)
 
         # Choose the direction that minimizes the distance to the target
