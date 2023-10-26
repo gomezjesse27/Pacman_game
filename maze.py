@@ -39,6 +39,11 @@ def draw_maze(screen, layout):
                 pygame.draw.circle(screen, POWER_PELLET_COLOR, pellet_pos, 2 * PELLET_SIZE)
             elif tile in [EMPTY, PLAYER_SPAWN, GHOST_SPAWN, GHOST_HOME, GHOST_HOME_ENTRANCE]:  # Empty space, Player spawn, Ghost spawn, Ghost home, and entrance
                 pygame.draw.rect(screen, EMPTY_COLOR, rect)
+    # Debug: Draw grid
+    for x in range(0, len(row) * TILE_SIZE, TILE_SIZE):
+        pygame.draw.line(screen, (50, 50, 50), (x, 0), (x, len(layout) * TILE_SIZE))
+    for y in range(0, len(layout) * TILE_SIZE, TILE_SIZE):
+        pygame.draw.line(screen, (50, 50, 50), (0, y), (len(row) * TILE_SIZE, y))
 
 
 def get_nodes():
