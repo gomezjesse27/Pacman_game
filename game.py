@@ -20,6 +20,7 @@ def game_loop():
     Clyde_instance = Clyde(screen, get_nodes(), maze_layout, (12,11))
     # Store the current direction of Pac-Man
     current_direction = None
+    numericdirection = (0,0)
     
     # Timer for delay
     move_timer = 0
@@ -36,13 +37,13 @@ def game_loop():
         Pinky_instance.draw()
         Blinky_instance.draw()
         Clyde_instance.draw()
-        Inky_instance.target = pacman_instance.rect.topleft
+        Inky_instance.target = Inky_instance.get_target(pacman_instance.rect.topleft, numericdirection)
         Inky_instance.move()
-        Pinky_instance.target = pacman_instance.rect.topleft
+        Pinky_instance.target = Pinky_instance.get_target(pacman_instance.rect.topleft, current_direction)
         Pinky_instance.move()
-        Blinky_instance.target = pacman_instance.rect.topleft
+        Blinky_instance.target = Blinky_instance.get_target(pacman_instance.rect.topleft)
         Blinky_instance.move()
-        Clyde_instance.target = pacman_instance.rect.topleft
+        Clyde_instance.target = Clyde_instance.get_target(pacman_instance.rect.topleft)
         Clyde_instance.move()
         # Move Pac-Man in the current direction (if any) with a delay
         if current_direction:
@@ -59,12 +60,16 @@ def game_loop():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     current_direction = 'UP'
+                    numericdirection = (0, 1)
                 elif event.key == pygame.K_DOWN:
                     current_direction = 'DOWN'
+                    numericdirection = (0, -1)
                 elif event.key == pygame.K_LEFT:
                     current_direction = 'LEFT'
+                    numericdirection = (-1, 0)
                 elif event.key == pygame.K_RIGHT:
                     current_direction = 'RIGHT'
+                    numericdirection = (1, 0)
             if event.type == pygame.KEYUP:  # Reset direction when the key is released
                 if event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
                     current_direction = None

@@ -137,9 +137,9 @@ class Ghost:
 
     
     def move(self):
-        # Increment the move counter and check if it's time to move
+        # Increment the move counter and check if it'st time to move
         self.move_counter += 1
-        if self.move_counter < 5:  # Adjust this number for different speeds
+        if self.move_counter < 10:  # Adjust this number for different speeds
             return
         self.move_counter = 0  # Reset the counter
         
@@ -195,11 +195,11 @@ class Ghost:
 
     
 
-    def update(self, pacman_pos, pacman_direction, blinky_pos=None):
+    def update(self, pacman_pos, pacman_direction):
         if self.frightened:
             self.target = random.choice(self.nodes)
         else:
-            self.target = self.get_target(pacman_pos, pacman_direction, blinky_pos)
+            self.target = self.get_target(pacman_pos, pacman_direction)
 
         self.move()
 
@@ -214,8 +214,8 @@ class Blinky(Ghost):
     def __init__(self, screen, nodes, maze_layout, spawn_tile):
         super().__init__(screen, nodes, maze_layout, spawn_tile, (255, 0, 0))
 
-    def get_target(self, pacman_pos, pacman_direction=None, blinky_pos=None):
-        pacman_direction = pacman_direction or (0, 0)
+    def get_target(self, pacman_pos):
+        #pacman_direction = pacman_direction or (0, 0)
         return pacman_pos  # Directly targets Pac-Man's position
 
 
@@ -223,33 +223,58 @@ class Pinky(Ghost):
     def __init__(self, screen, nodes, maze_layout, spawn_tile):
         super().__init__(screen, nodes, maze_layout, spawn_tile, (255, 105, 180))
 
-    def get_target(self, pacman_pos, pacman_direction=None, blinky_pos=None):
+    def get_target(self, pacman_pos, pacman_direction = None, blinky_pos=None):
         pacman_direction = pacman_direction or (0, 0)
-        # Targets 4 tiles ahead of Pac-Man in its current direction
-        return (pacman_pos[0] + 4 * pacman_direction[0], pacman_pos[1] + 4 * pacman_direction[1])
+        if abs(self.rect.x - pacman_pos[0]) + abs(self.rect.y - pacman_pos[1]) > 4 * TILE_SIZE:
+            #print(pacman_pos)
+            return pacman_pos
+            
+        # If within 8 tiles, targets its scatter point (bottom-left corner)
+        else:
+            return (80, 460)  # Just above the bottom-left corner
 
 
 class Inky(Ghost):
     def __init__(self, screen, nodes, maze_layout, spawn_tile):
         super().__init__(screen, nodes, maze_layout, spawn_tile, (0, 255, 255))
 
-    def get_target(self, pacman_pos, pacman_direction, blinky_pos):
+    def get_target(self, pacman_pos, pacman_direction, blinky_pos = None):
         # Calculate a reference point 2 tiles ahead of Pac-Man in its current direction
-        ref_point = (pacman_pos[0] + 2 * pacman_direction[0], pacman_pos[1] + 2 * pacman_direction[1])
+        ref_point = (pacman_pos[0] + 40 * pacman_direction[0], pacman_pos[1] + 40 * pacman_direction[1])
         # Use the vector from Blinky to this reference point and double it
-        return (2 * ref_point[0] - blinky_pos[0], 2 * ref_point[1] - blinky_pos[1])
+        return ref_point
 
 
 class Clyde(Ghost):
     def __init__(self, screen, nodes, maze_layout, spawn_tile):
         super().__init__(screen, nodes, maze_layout, spawn_tile, (255, 165, 0))
+        self.current_target = None
+        self.reached = False
 
     def get_target(self, pacman_pos, pacman_direction=None, blinky_pos=None):
         pacman_direction = pacman_direction or (0, 0)
         # If more than 8 tiles away from Pac-Man, targets him directly
         if abs(self.rect.x - pacman_pos[0]) + abs(self.rect.y - pacman_pos[1]) > 8 * TILE_SIZE:
+            self.current_target = pacman_pos
             return pacman_pos
         # If within 8 tiles, targets its scatter point (bottom-left corner)
         else:
-            return (2, len(self.maze_layout) - 3)  # Just above the bottom-left corner
+            x, y = self.rect.topleft[0] // TILE_SIZE, self.rect.topleft[1] // TILE_SIZE
+            current_tile2 = (x, y)
+            #print (current_tile2)
+
+            if current_tile2 == (4, 11):
+                self.reached = False
+
+
+            if current_tile2 == (4, 23):
+                self.reached = True
+
+            if self.reached:
+                return (80, 235)
+            
+            if not self.reached:
+                return (80, 460)
+            
+
 
