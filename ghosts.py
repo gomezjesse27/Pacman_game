@@ -139,7 +139,7 @@ class Ghost:
     def move(self):
         # Increment the move counter and check if it'st time to move
         self.move_counter += 1
-        if self.move_counter < 10:  # Adjust this number for different speeds
+        if self.move_counter < 5:  # Adjust this number for different speeds
             return
         self.move_counter = 0  # Reset the counter
         
@@ -222,16 +222,43 @@ class Blinky(Ghost):
 class Pinky(Ghost):
     def __init__(self, screen, nodes, maze_layout, spawn_tile):
         super().__init__(screen, nodes, maze_layout, spawn_tile, (255, 105, 180))
+        self.scatter_start_time = None  # This will store the time when scatter mode starts
+        self.scatter_duration = 5000  # Scatter mode duration, 5 seconds in milliseconds
+        self.reached = False
 
-    def get_target(self, pacman_pos, pacman_direction = None, blinky_pos=None):
+    def get_target(self, pacman_pos, pacman_direction=None, blinky_pos=None):
         pacman_direction = pacman_direction or (0, 0)
+        
+        # If scatter_start_time is set, check how much time has passed
+        if self.scatter_start_time:
+            elapsed_time = pygame.time.get_ticks() - self.scatter_start_time
+            if elapsed_time < self.scatter_duration:
+                x, y = self.rect.topleft[0] // 20, self.rect.topleft[1] // 20
+                current_tile2 = (x, y)
+
+                if current_tile2 == (1, 1):
+                    self.reached = False
+
+                if current_tile2 == (5, 4):
+                    self.reached = True
+
+                if self.reached:
+                    return (20, 20)
+                
+                if not self.reached:
+                    return (100, 80)
+            else:
+                # Reset scatter_start_time if scatter duration has passed
+                self.scatter_start_time = None
+
+        # If more than 4 tiles away from Pac-Man, targets him directly
         if abs(self.rect.x - pacman_pos[0]) + abs(self.rect.y - pacman_pos[1]) > 4 * TILE_SIZE:
-            #print(pacman_pos)
             return pacman_pos
-            
-        # If within 8 tiles, targets its scatter point (bottom-left corner)
-        else:
-            return (80, 460)  # Just above the bottom-left corner
+
+        # If within 4 tiles and scatter timer is not active, start scatter timer
+        elif abs(self.rect.x - pacman_pos[0]) + abs(self.rect.y - pacman_pos[1]) <= 4 * TILE_SIZE:
+            if not self.scatter_start_time:
+                self.scatter_start_time = pygame.time.get_ticks()
 
 
 class Inky(Ghost):
@@ -250,31 +277,44 @@ class Clyde(Ghost):
         super().__init__(screen, nodes, maze_layout, spawn_tile, (255, 165, 0))
         self.current_target = None
         self.reached = False
+        self.scatter_start_time = None  # This will store the time when scatter mode starts
+        self.scatter_duration = 5000  # Scatter mode duration, 5 seconds in milliseconds
 
     def get_target(self, pacman_pos, pacman_direction=None, blinky_pos=None):
         pacman_direction = pacman_direction or (0, 0)
+        
+        # If scatter_start_time is set, check how much time has passed
+        if self.scatter_start_time:
+            elapsed_time = pygame.time.get_ticks() - self.scatter_start_time
+            if elapsed_time < self.scatter_duration:
+                x, y = self.rect.topleft[0] // TILE_SIZE, self.rect.topleft[1] // TILE_SIZE
+                current_tile2 = (x, y)
+
+                if current_tile2 == (6, 18):
+                    self.reached = False
+
+                if current_tile2 == (4, 23):
+                    self.reached = True
+
+                if self.reached:
+                    return (125, 360)
+                
+                if not self.reached:
+                    return (80, 460)
+            else:
+                # Reset scatter_start_time if scatter duration has passed
+                self.scatter_start_time = None
+
         # If more than 8 tiles away from Pac-Man, targets him directly
         if abs(self.rect.x - pacman_pos[0]) + abs(self.rect.y - pacman_pos[1]) > 8 * TILE_SIZE:
             self.current_target = pacman_pos
             return pacman_pos
-        # If within 8 tiles, targets its scatter point (bottom-left corner)
-        else:
-            x, y = self.rect.topleft[0] // TILE_SIZE, self.rect.topleft[1] // TILE_SIZE
-            current_tile2 = (x, y)
-            #print (current_tile2)
 
-            if current_tile2 == (4, 11):
-                self.reached = False
+        # If within 8 tiles and scatter timer is not active, start scatter timer
+        elif abs(self.rect.x - pacman_pos[0]) + abs(self.rect.y - pacman_pos[1]) <= 8 * TILE_SIZE:
+            if not self.scatter_start_time:
+                self.scatter_start_time = pygame.time.get_ticks()
 
-
-            if current_tile2 == (4, 23):
-                self.reached = True
-
-            if self.reached:
-                return (80, 235)
-            
-            if not self.reached:
-                return (80, 460)
             
 
 
