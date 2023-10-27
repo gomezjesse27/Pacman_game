@@ -182,6 +182,11 @@ class PacMan:
                 if self.rect.centery <= self.target[1]:
                     self.rect.centery = self.target[1]
                     self.target = None
+            maze_width = len(self.layout[0]) * TILE_SIZE
+            if self.rect.left < 1:
+                self.rect.right = maze_width
+            elif self.rect.right > maze_width - 1:
+                self.rect.left = 0
         x, y = self.rect.centerx // TILE_SIZE, self.rect.centery // TILE_SIZE
         if self.layout[y][x] == "*":
             self.score += 10  # Increase the score by 10
