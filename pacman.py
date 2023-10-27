@@ -63,10 +63,18 @@ class PacMan:
         self.powered_up = False
         self.powered_up_duration = 5000
         self.power_up_timer = None
+        self.lives = 100
+        self.is_dying = False
+        self.death_start = None  # This will store the time when scatter mode starts
+        self.death_duration = 5000  # Scatter mode duration, 5 seconds in milliseconds
+        self.can_move = True
+        
+
         
         # Load the vertical and horizontal animation sprites
         self.image_horiz = pygame.transform.scale(pygame.image.load('pacman-horiz.png'), (TILE_SIZE, TILE_SIZE))
         self.image_vert = pygame.transform.scale(pygame.image.load('pacman-vert.png'), (TILE_SIZE, TILE_SIZE))
+        self.image_death = pygame.transform.scale(pygame.image.load('pacman-death.png'), (TILE_SIZE, TILE_SIZE))
         
         # Resize the default image to fit within a tile
         
@@ -95,6 +103,12 @@ class PacMan:
                                                                                             (32, 32, 32, 32),
                                                                                             (0, 64, 32, 32)],
                                         resize=(TILE_SIZE, TILE_SIZE))
+        self.image_death = ImageManager('pacman-death.png', sheet=True, pos_offsets=[(0, 0, 32, 32),
+                                                                                            (32, 0, 32, 32),
+                                                                                            (0, 32, 32, 32),
+                                                                                            (32, 32, 32, 32),
+                                                                                            (0, 64, 32, 32)],
+                                        resize=(TILE_SIZE, TILE_SIZE))
         
         self.image, _ = self.image_horiz.next_image()
     
@@ -109,9 +123,19 @@ class PacMan:
                     self.rect.topleft = (x * TILE_SIZE, y * TILE_SIZE)
                     break
     #def eat (self):
+        self.starting_position = self.rect.topleft
 
     def draw(self):
         self.screen.blit(self.image, self.rect.topleft)
+
+    def die(self):
+        if not self.is_dying:  # Ensure we only start the death process once
+            self.is_dying = True
+            self.can_move = False  # Disable movement
+            self.death_start = pygame.time.get_ticks()
+            self.rect.topleft = self.starting_position  # Reset position immediately
+
+
 
     def move(self, direction):
         if not self.target:  # If not already moving towards a target

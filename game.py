@@ -37,16 +37,52 @@ def game_loop():
         Pinky_instance.draw()
         Blinky_instance.draw()
         Clyde_instance.draw()
-        Inky_instance.target = Inky_instance.get_target(pacman_instance.rect.topleft, numericdirection)
         Inky_instance.move()
-        Pinky_instance.target = Pinky_instance.get_target(pacman_instance.rect.topleft, current_direction)
         Pinky_instance.move()
-        Blinky_instance.target = Blinky_instance.get_target(pacman_instance.rect.topleft)
         Blinky_instance.move()
-        Clyde_instance.target = Clyde_instance.get_target(pacman_instance.rect.topleft)
         Clyde_instance.move()
+
+        if not pacman_instance.is_dying:
+            Inky_instance.target = Inky_instance.get_target(pacman_instance.rect.topleft, numericdirection)
+            
+            Pinky_instance.target = Pinky_instance.get_target(pacman_instance.rect.topleft, current_direction)
+            
+            Blinky_instance.target = Blinky_instance.get_target(pacman_instance.rect.topleft)
+            
+            Clyde_instance.target = Clyde_instance.get_target(pacman_instance.rect.topleft)
+        
+
+
+        if pacman_instance.is_dying:
+            elapsed_time = pygame.time.get_ticks() - pacman_instance.death_start
+            if elapsed_time > pacman_instance.death_duration:
+                pacman_instance.lives -= 1
+                print(pacman_instance.lives)
+                pacman_instance.is_dying = False
+                pacman_instance.can_move = True  # Enable movement once the timer is up
+
+        if pacman_instance.is_dying == False:
+
+            if (pacman_instance.rect.topleft[0] // TILE_SIZE, pacman_instance.rect.topleft[1] // TILE_SIZE) == Inky_instance.location():
+                pacman_instance.die()
+            if (pacman_instance.rect.topleft[0] // TILE_SIZE, pacman_instance.rect.topleft[1] // TILE_SIZE) == Clyde_instance.location():
+                pacman_instance.die()
+            if (pacman_instance.rect.topleft[0] // TILE_SIZE, pacman_instance.rect.topleft[1] // TILE_SIZE) == Pinky_instance.location():
+                pacman_instance.die()
+            if (pacman_instance.rect.topleft[0] // TILE_SIZE, pacman_instance.rect.topleft[1] // TILE_SIZE) == Blinky_instance.location():
+                pacman_instance.die()
+        if pacman_instance.is_dying == True:
+            Inky_instance.target = (220, 220)
+            Inky_instance.move()
+            Pinky_instance.target = (220, 220)
+            Pinky_instance.move()
+            Blinky_instance.target = (220, 220)
+            Blinky_instance.move()
+            Clyde_instance.target = (220, 220)
+            Clyde_instance.move()
+        
         # Move Pac-Man in the current direction (if any) with a delay
-        if current_direction:
+        if current_direction and pacman_instance.can_move:
             current_time = pygame.time.get_ticks()
             if current_time - move_timer > move_delay:
                 

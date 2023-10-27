@@ -192,15 +192,23 @@ class Ghost:
         self.rect.move_ip(self.direction[0]*SPEED, self.direction[1]*SPEED)
         self.moving_to_tile = True
 
+    def location(self):
+        return self.rect.topleft[0] // TILE_SIZE, self.rect.topleft[1] // TILE_SIZE
+        
 
-    
+    def kill():
+        pass
+        
 
     def update(self, pacman_pos, pacman_direction):
         if self.frightened:
             self.target = random.choice(self.nodes)
         else:
             self.target = self.get_target(pacman_pos, pacman_direction)
-
+        x, y = self.rect.topleft[0] // TILE_SIZE, self.rect.topleft[1] // TILE_SIZE
+        current_tile2 = (x, y)
+        if current_tile2 == (pacman_pos[0] // TILE_SIZE, pacman_pos[1] // TILE_SIZE):
+            self.kill()
         self.move()
 
     def get_target(self, pacman_pos, pacman_direction, blinky_pos):
@@ -216,6 +224,7 @@ class Blinky(Ghost):
 
     def get_target(self, pacman_pos):
         #pacman_direction = pacman_direction or (0, 0)
+        
         return pacman_pos  # Directly targets Pac-Man's position
 
 
