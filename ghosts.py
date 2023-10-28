@@ -123,6 +123,11 @@ class Ghost:
         self.frightened = False
         self.move_counter = 0
         self.moving_to_tile = False
+        self.frightened_timer = 0
+        self.frightened_direction_change_interval = random.randint(500, 1500)  # Random interval between 0.5 and 1.5 seconds
+        self.death_start = None  # This will store the time when scatter mode starts
+        self.death_duration = 5000  # Scatter mode duration, 5 seconds in milliseconds
+        self.is_dying = False
 
     def draw(self):
         if self.frightened:
@@ -133,6 +138,42 @@ class Ghost:
                    (self.rect.topleft[1] // TILE_SIZE + self.direction[1]) * TILE_SIZE)
         pygame.draw.rect(self.screen, (255, 0, 255), 
                  (next_tile_pixel[0], next_tile_pixel[1], TILE_SIZE, TILE_SIZE), 2)
+
+    def get_frightened_target(self, pacman_pos):
+        """Determine target tile while in frightened mode."""
+        possible_directions = list(ALL_DIRECTIONS)
+        
+        # Remove the opposite direction
+        if (-self.direction[0], -self.direction[1]) in possible_directions:
+            possible_directions.remove((-self.direction[0], -self.direction[1]))  
+        
+        # Filter out invalid directions based on the maze layout
+        valid_directions = [dir for dir in possible_directions if self.is_valid_direction(dir)]
+        
+        # Compute possible tiles and their distances from Pac-Man
+        distances = []
+        for dir in valid_directions:
+            next_tile = (self.rect.topleft[0] + dir[0] * TILE_SIZE, 
+                        self.rect.topleft[1] + dir[1] * TILE_SIZE)
+            distance = abs(next_tile[0] - pacman_pos[0]) + abs(next_tile[1] - pacman_pos[1])
+            distances.append((distance, next_tile))
+        
+        if distances:
+            target_tile = max(distances, key=lambda x: x[0])[1]
+            return target_tile
+        else:
+            # Return the current position if no valid direction is found
+            return self.rect.topleft
+    def is_valid_direction(self, direction):
+        """Check if a given direction is valid (no walls and within maze bounds)."""
+        next_tile_pixel = ((self.rect.topleft[0] + direction[0] * TILE_SIZE) // TILE_SIZE,
+                        (self.rect.topleft[1] + direction[1] * TILE_SIZE) // TILE_SIZE)
+        if (next_tile_pixel[0] < 0 or next_tile_pixel[0] >= len(self.maze_layout[0]) or
+            next_tile_pixel[1] < 0 or next_tile_pixel[1] >= len(self.maze_layout)):
+            return False
+        if self.maze_layout[next_tile_pixel[1]][next_tile_pixel[0]] == "x":
+            return False
+        return True
 
 
     
