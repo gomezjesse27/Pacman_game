@@ -1,6 +1,6 @@
 
 from queue import PriorityQueue
-
+from collections import deque
 
 
 class Node():
@@ -13,7 +13,167 @@ class Node():
 
     def __eq__(self, other):
         return self.position == other.position
+def random_search(start, goal, maze, current_path):
+    # Check if the ghost is still on its way to the current target
+    if current_path and start != current_path[-1]:
+        return current_path
 
+    path = [start]
+    current = start
+
+    while current != goal:
+        # Generate possible moves
+        moves = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+        random.shuffle(moves)
+
+        found_next_step = False
+        for move in moves:
+            next_position = (current[0] + move[0], current[1] + move[1])
+
+            if 0 <= next_position[0] < len(maze[0]) and 0 <= next_position[1] < len(maze):
+                if maze[next_position[1]][next_position[0]] != 'x':
+                    current = next_position
+                    path.append(current)
+                    found_next_step = True
+                    break
+
+        if not found_next_step or current == goal:
+            break
+
+    return path
+def greedy_search(start, goal, maze):
+    stack = [[start]]
+    visited = set([start])
+
+    while stack:
+        path = stack.pop()
+        current = path[-1]
+
+        if current == goal:
+            return path
+
+        for direction in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+            next_position = (current[0] + direction[0], current[1] + direction[1])
+
+            if 0 <= next_position[0] < len(maze[0]) and 0 <= next_position[1] < len(maze):
+                if maze[next_position[1]][next_position[0]] != 'x' and next_position not in visited:
+                    visited.add(next_position)
+                    new_path = list(path)
+                    new_path.append(next_position)
+                    stack.append(new_path)
+
+    return []
+
+
+
+def bfs_search(start, goal, maze):
+    # Create a queue to store the paths
+    queue = deque([[start]])
+    visited = set([start])
+
+    while queue:
+        path = queue.popleft()
+        current = path[-1]
+
+        # Return path if goal is reached
+        if current == goal:
+            return path
+
+        for direction in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+            next_position = (current[0] + direction[0], current[1] + direction[1])
+
+            # Check if the next position is within maze bounds and not a wall
+            if 0 <= next_position[0] < len(maze[0]) and 0 <= next_position[1] < len(maze):
+                if maze[next_position[1]][next_position[0]] != 'x' and next_position not in visited:
+                    visited.add(next_position)
+                    new_path = list(path)
+                    new_path.append(next_position)
+                    queue.append(new_path)
+
+    # Return an empty list if no path is found
+    return []
+
+
+
+def dijkstra_search(start, goal, maze):
+    start_node = Node(None, start)
+    start_node.g = 0
+    end_node = Node(None, goal)
+
+    open_list = [start_node]
+    closed_list = []
+
+    while open_list:
+        current_node = min(open_list, key=lambda x: x.g)
+        open_list.remove(current_node)
+        closed_list.append(current_node)
+
+        if current_node == end_node:
+            path = []
+            current = current_node
+            while current is not None:
+                path.append(current.position)
+                current = current.parent
+            return path[::-1]
+
+        children = []
+        for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+            node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+
+            if node_position[0] < 0 or node_position[0] >= len(maze[0]) or node_position[1] < 0 or node_position[1] >= len(maze):
+                continue
+
+            if maze[node_position[1]][node_position[0]] == 'x':
+                continue
+
+            new_node = Node(current_node, node_position)
+            if new_node in closed_list:
+                continue
+
+            new_node.g = current_node.g + 1
+            children.append(new_node)
+
+        for child in children:
+            if child in open_list:
+                open_node = open_list[open_list.index(child)]
+                if child.g < open_node.g:
+                    open_list[open_list.index(child)] = child
+            else:
+                open_list.append(child)
+
+    return None
+def heuristic(node, goal):
+    # Using Manhattan distance as the heuristic
+    return abs(node[0] - goal[0]) + abs(node[1] - goal[1])
+
+def greedy_best_first_search(start, goal, maze):
+    open_list = PriorityQueue()
+    open_list.put((0, start))
+    came_from = {}
+    visited = set()
+
+    while not open_list.empty():
+        _, current = open_list.get()
+
+        if current == goal:
+            # Reconstruct path
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            return path[::-1]
+
+        for direction in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+            next_node = (current[0] + direction[0], current[1] + direction[1])
+
+            if 0 <= next_node[0] < len(maze[0]) and 0 <= next_node[1] < len(maze):
+                if maze[next_node[1]][next_node[0]] != 'x' and next_node not in visited:
+                    visited.add(next_node)
+                    came_from[next_node] = current
+                    priority = heuristic(next_node, goal)
+                    open_list.put((priority, next_node))
+
+    return []
 def a_star_search(start, goal, maze):
     
     # Create start and end node
@@ -177,7 +337,7 @@ class Ghost:
 
 
     
-    def move(self):
+    def move(self, selected_algorithm):
         # Increment the move counter and check if it'st time to move
         self.move_counter += 1
         if self.move_counter < 5:  # Adjust this number for different speeds
@@ -211,7 +371,16 @@ class Ghost:
             goal = (target_x, target_y)
 
             # Use A* to find the path
-            self.path = a_star_search(current_tile, goal, self.maze_layout)
+            if selected_algorithm == 'A*' :
+                self.path = a_star_search(current_tile, goal, self.maze_layout)
+            elif selected_algorithm == 'Random':
+                self.path = random_search(current_tile, goal, self.maze_layout, self.path if hasattr(self, 'path') else [])
+            elif selected_algorithm == 'Bfs':
+                self.path = bfs_search(current_tile, goal, self.maze_layout)
+            elif selected_algorithm == 'Dijkstra\'s':
+                self.path = dijkstra_search(current_tile, goal, self.maze_layout)
+            elif selected_algorithm == 'Greedy':
+                self.path = greedy_best_first_search(current_tile, goal, self.maze_layout)
             if not self.path:
                 return
 

@@ -9,7 +9,7 @@ SCREEN_WIDTH = len(maze_layout[0]) * TILE_SIZE +150
 SCREEN_HEIGHT = len(maze_layout[1]) * TILE_SIZE +100
 
 
-def game_loop():
+def game_loop(selected_algorithm):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     
     # Create PacMan instance
@@ -37,10 +37,10 @@ def game_loop():
         Pinky_instance.draw()
         Blinky_instance.draw()
         Clyde_instance.draw()
-        Inky_instance.move()
-        Pinky_instance.move()
-        Blinky_instance.move()
-        Clyde_instance.move()
+        Inky_instance.move(selected_algorithm)
+        Pinky_instance.move(selected_algorithm)
+        Blinky_instance.move(selected_algorithm)
+        Clyde_instance.move(selected_algorithm)
         if pacman_instance.powered_up:
             elapsed_time = pygame.time.get_ticks() - pacman_instance.power_up_timer
             if elapsed_time > pacman_instance.powered_up_duration:
@@ -99,7 +99,7 @@ def game_loop():
                             Inky_instance.is_dying = False
                     else:
                         Inky_instance.target = (220, 220)
-                        Inky_instance.move()
+                        Inky_instance.move(selected_algorithm)
 
                 if Pinky_instance.is_dying:
                     elapsed_time = pygame.time.get_ticks() - Pinky_instance.death_start
@@ -107,21 +107,21 @@ def game_loop():
                             Pinky_instance.is_dying = False
                     else:
                         Pinky_instance.target = (220, 220)
-                        Pinky_instance.move()
+                        Pinky_instance.move(selected_algorithm)
                 if Blinky_instance.is_dying:
                     elapsed_time = pygame.time.get_ticks() - Blinky_instance.death_start
                     if elapsed_time > Blinky_instance.death_duration:
                             Blinky_instance.is_dying = False
                     else:
                         Blinky_instance.target = (220, 220)
-                        Blinky_instance.move()
+                        Blinky_instance.move(selected_algorithm)
                 if Clyde_instance.is_dying:
                     elapsed_time = pygame.time.get_ticks() - Clyde_instance.death_start
                     if elapsed_time > Clyde_instance.death_duration:
                             Clyde_instance.is_dying = False
                     else:
                         Clyde_instance.target = (220, 220)
-                        Clyde_instance.move()
+                        Clyde_instance.move(selected_algorithm)
 
             
             
@@ -157,13 +157,13 @@ def game_loop():
                     pacman_instance.die()
             if pacman_instance.is_dying == True:
                 Inky_instance.target = (220, 220)
-                Inky_instance.move()
+                Inky_instance.move(selected_algorithm)
                 Pinky_instance.target = (220, 220)
-                Pinky_instance.move()
+                Pinky_instance.move(selected_algorithm)
                 Blinky_instance.target = (220, 220)
-                Blinky_instance.move()
+                Blinky_instance.move(selected_algorithm)
                 Clyde_instance.target = (220, 220)
-                Clyde_instance.move()
+                Clyde_instance.move(selected_algorithm)
         
         # Move Pac-Man in the current direction (if any) with a delay
         if current_direction and pacman_instance.can_move:

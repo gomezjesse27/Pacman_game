@@ -1,7 +1,7 @@
+
 import pygame
 import sys
 from game import game_loop
-
 
 # Initialize pygame
 pygame.init()
@@ -13,6 +13,14 @@ BUTTON_WIDTH = 200
 BUTTON_HEIGHT = 50
 BUTTON_COLOR = (50, 205, 50)
 BUTTON_HOVER_COLOR = (34, 139, 34)
+
+# New Constants for Algorithm Selection Buttons
+ALGORITHM_BUTTON_WIDTH = 200
+ALGORITHM_BUTTON_HEIGHT = 50
+ALGORITHM_BUTTON_COLOR = (50, 50, 205)  # A different color for differentiation
+ALGORITHM_BUTTON_HOVER_COLOR = (34, 34, 139)
+ALGORITHM_LABELS = ["Random", "Bfs", "A*", "Dijkstra's", "Greedy"]
+ALGORITHM_BUTTON_SPACING = 60  # Vertical spacing between buttons
 
 # Load images
 title_image = pygame.image.load("pacmanTitle.png")
@@ -30,77 +38,73 @@ orange_ghost_image = pygame.transform.scale(orange_ghost_image, (50, 50))
 blue_ghost_image = pygame.transform.scale(blue_ghost_image, (50, 50))
 red_ghost_image = pygame.transform.scale(red_ghost_image, (50, 50))
 
-def start_screen():
+# Function to create and handle algorithm selection buttons
+def create_algorithm_buttons(screen):
+    selected_algorithm = None
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+
+    # Adjust button layout: 2 rows, 2 columns, moved down to avoid blocking the title
+    button_x_start = (SCREEN_WIDTH - (ALGORITHM_BUTTON_WIDTH * 2 + ALGORITHM_BUTTON_SPACING)) // 2
+    # Moving buttons down, adjust the vertical start position as needed
+    button_y_start = (SCREEN_HEIGHT - (ALGORITHM_BUTTON_HEIGHT * 2 + ALGORITHM_BUTTON_SPACING)) // 2 + 100 
+
+    for i, label in enumerate(ALGORITHM_LABELS):
+        row = i // 2
+        col = i % 2
+
+        button_x = button_x_start + col * (ALGORITHM_BUTTON_WIDTH + ALGORITHM_BUTTON_SPACING)
+        button_y = button_y_start + row * (ALGORITHM_BUTTON_HEIGHT + ALGORITHM_BUTTON_SPACING)
+
+        button_rect = pygame.Rect(button_x, button_y, ALGORITHM_BUTTON_WIDTH, ALGORITHM_BUTTON_HEIGHT)
+
+        # Button hover effect
+        if button_rect.collidepoint(mouse):
+            pygame.draw.rect(screen, ALGORITHM_BUTTON_HOVER_COLOR, button_rect)
+            if click[0] == 1:
+                selected_algorithm = label
+        else:
+            pygame.draw.rect(screen, ALGORITHM_BUTTON_COLOR, button_rect)
+
+        # Button text
+        font = pygame.font.SysFont(None, 35)
+        text = font.render(label, True, (255, 255, 255))
+        screen.blit(text, (button_x + (ALGORITHM_BUTTON_WIDTH - text.get_width()) // 2, 
+                           button_y + (ALGORITHM_BUTTON_HEIGHT - text.get_height()) // 2))
+
+    return selected_algorithm
+
+
+
+
+# Main function
+def main():
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Pac-Man Game")
-    font = pygame.font.Font(None, 36)
-    
-    # Define initial positions for Pac-Man and ghosts
-    pacman_pos = [SCREEN_WIDTH // 2 - 400, 330]  # Adjusted horizontal position
-    
-    pink_ghost_pos = [SCREEN_WIDTH // 2 - 350, 330]
-    orange_ghost_pos = [SCREEN_WIDTH // 2 - 250, 330]
-    blue_ghost_pos = [SCREEN_WIDTH // 2 - 150, 330]
-    red_ghost_pos = [SCREEN_WIDTH // 2 - 50, 330]
-    
-    ghost_speed = 0.5  # Further reduced speed
-    pacman_speed = 0.5  # Further reduced speed
-    
+    pygame.display.set_caption('Pacman')
+
+    # Main loop
     running = True
     while running:
-        screen.fill((0, 0, 0))
-        
-        # Move ghosts to the right
-        pink_ghost_pos[0] += ghost_speed
-        orange_ghost_pos[0] += ghost_speed
-        blue_ghost_pos[0] += ghost_speed
-        red_ghost_pos[0] += ghost_speed
-        
-        # Move Pac-Man to the right
-        pacman_pos[0] += pacman_speed
-        
-        # Wrap-around movement for ghosts and Pac-Man
-        pink_ghost_pos[0] %= SCREEN_WIDTH
-        orange_ghost_pos[0] %= SCREEN_WIDTH
-        blue_ghost_pos[0] %= SCREEN_WIDTH
-        red_ghost_pos[0] %= SCREEN_WIDTH
-        pacman_pos[0] %= SCREEN_WIDTH
-        
-        # Draw title image
-        screen.blit(title_image, (SCREEN_WIDTH // 2 - title_image.get_width() // 2, 50))
-        
-        # Draw Pac-Man and ghosts
-        screen.blit(pacman_image, pacman_pos)
-        screen.blit(pink_ghost_image, pink_ghost_pos)
-        screen.blit(orange_ghost_image, orange_ghost_pos)
-        screen.blit(blue_ghost_image, blue_ghost_pos)
-        screen.blit(red_ghost_image, red_ghost_pos)
-        
-        # Draw button
-        mouse = pygame.mouse.get_pos()
-        if SCREEN_WIDTH // 2 - BUTTON_WIDTH // 2 < mouse[0] < SCREEN_WIDTH // 2 + BUTTON_WIDTH // 2 and \
-           450 < mouse[1] < 450 + BUTTON_HEIGHT:
-            pygame.draw.rect(screen, BUTTON_HOVER_COLOR, (SCREEN_WIDTH // 2 - BUTTON_WIDTH // 2, 450, BUTTON_WIDTH, BUTTON_HEIGHT))
-            if pygame.mouse.get_pressed()[0]:
-                game_loop()
-
-        else:
-            pygame.draw.rect(screen, BUTTON_COLOR, (SCREEN_WIDTH // 2 - BUTTON_WIDTH // 2, 450, BUTTON_WIDTH, BUTTON_HEIGHT))
-        
-        text = font.render("Start Game", True, (255, 255, 255))
-        screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, 457))
-        
-        # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-                
-        pygame.display.flip()
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                selected_algorithm = create_algorithm_buttons(screen)
+                if selected_algorithm:
+                    game_loop(selected_algorithm)
 
-# This is the adjusted function with Pac-Man to the left of the ghosts and even slower movement speed.
+        screen.fill((0, 0, 0))  # Clear screen
 
+        # Draw title image
+        screen.blit(title_image, (SCREEN_WIDTH//2 - title_image.get_width()//2, 50))
 
+        # Draw algorithm selection buttons
+        selected_algorithm = create_algorithm_buttons(screen)
 
-# Run start screen function
-start_screen()
+        pygame.display.update()
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
