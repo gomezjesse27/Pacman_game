@@ -1,5 +1,6 @@
 
 import pygame
+import random
 
 
 TILE_SIZE = 20  # Size of each tile in pixels
@@ -19,6 +20,8 @@ class ImageManager:
         self.image_index = 0
         self.last_update = pygame.time.get_ticks()
         self.images = self.load_images()
+        self.ai_frame_counter = 0
+        
         
     def load_images(self):
         images = []
@@ -68,8 +71,10 @@ class PacMan:
         self.death_start = None  # This will store the time when scatter mode starts
         self.death_duration = 5000  # Scatter mode duration, 5 seconds in milliseconds
         self.can_move = True
-        
-
+        self.ai_move_frame_counter = 0
+        self.ai_move_frame_threshold = 10  # Adjust this value to control AI speed
+        self.last_successful_move = None
+        self.speed = 5
         
         # Load the vertical and horizontal animation sprites
         self.image_horiz = pygame.transform.scale(pygame.image.load('pacman-horiz.png'), (TILE_SIZE, TILE_SIZE))
@@ -163,22 +168,22 @@ class PacMan:
         # Move Pac-Man smoothly towards the target
         if self.target:
             if self.rect.centerx < self.target[0]:  # Move right
-                self.rect.x += SPEED
+                self.rect.x += self.speed
                 if self.rect.centerx >= self.target[0]:
                     self.rect.centerx = self.target[0]
                     self.target = None
             elif self.rect.centerx > self.target[0]:  # Move left
-                self.rect.x -= SPEED
+                self.rect.x -= self.speed
                 if self.rect.centerx <= self.target[0]:
                     self.rect.centerx = self.target[0]
                     self.target = None
             elif self.rect.centery < self.target[1]:  # Move down
-                self.rect.y += SPEED
+                self.rect.y += self.speed
                 if self.rect.centery >= self.target[1]:
                     self.rect.centery = self.target[1]
                     self.target = None
             elif self.rect.centery > self.target[1]:  # Move up
-                self.rect.y -= SPEED
+                self.rect.y -= self.speed
                 if self.rect.centery <= self.target[1]:
                     self.rect.centery = self.target[1]
                     self.target = None
@@ -196,6 +201,109 @@ class PacMan:
             self.layout[y][x] = "."  # Remove the pellet from the maze layout
             self.powered_up = True
             self.power_up_timer = pygame.time.get_ticks()  # Start the timer
+    def ai_move(self, maze_layout, ghosts):
+        self.speed = 1
+        self.ai_move_frame_counter += 1
+        if self.ai_move_frame_counter < self.ai_move_frame_threshold:
+            return  # Skip the move if the frame threshold has not been reached
+
+        closest_ghost, closest_dist = self.get_closest_ghost(ghosts)
+        pacman_x, pacman_y = self.rect.centerx // TILE_SIZE, self.rect.centery // TILE_SIZE
+
+        if closest_ghost:
+            ghost_x, ghost_y = closest_ghost.location()
+            primary_direction = self.get_primary_direction(ghost_x, ghost_y, pacman_x, pacman_y)
+            reverse_direction = self.get_reverse_direction(self.last_successful_move)
+
+            # If a ghost is very close, prioritize escaping from it
+            if closest_dist < 100:  # Define a threshold for "very close"
+                escape_directions = self.get_escape_directions(primary_direction, reverse_direction)
+                if self.try_escape(escape_directions, pacman_x, pacman_y, maze_layout):
+                    return
+
+            # If no immediate ghost threat, try to continue in the last successful direction
+            if self.last_successful_move and self.try_move(self.last_successful_move, pacman_x, pacman_y, maze_layout):
+                return
+
+            # If blocked, choose a new direction
+            new_directions = self.get_new_directions(reverse_direction)
+            for direction in new_directions:
+                if self.try_move(direction, pacman_x, pacman_y, maze_layout):
+                    self.last_successful_move = direction
+                    break
+
+        self.ai_move_frame_counter = 0
+
+    def get_closest_ghost(self, ghosts):
+        closest_ghost = None
+        closest_dist = float('inf')
+        for ghost in ghosts:
+            ghost_pos = ghost.location()
+            dist = abs(self.rect.centerx - ghost_pos[0] * TILE_SIZE) + abs(self.rect.centery - ghost_pos[1] * TILE_SIZE)
+            if dist < closest_dist:
+                closest_dist = dist
+                closest_ghost = ghost
+        return closest_ghost, closest_dist
+
+    def get_primary_direction(self, ghost_x, ghost_y, pacman_x, pacman_y):
+        if ghost_x > pacman_x:
+            return 'LEFT'
+        elif ghost_x < pacman_x:
+            return 'RIGHT'
+        elif ghost_y > pacman_y:
+            return 'UP'
+        elif ghost_y < pacman_y:
+            return 'DOWN'
+        return None
+
+    def get_reverse_direction(self, last_move):
+        if last_move == 'LEFT':
+            return 'RIGHT'
+        elif last_move == 'RIGHT':
+            return 'LEFT'
+        elif last_move == 'UP':
+            return 'DOWN'
+        elif last_move == 'DOWN':
+            return 'UP'
+        return None
+
+    def get_escape_directions(self, primary_direction, reverse_direction):
+        directions = ['LEFT', 'RIGHT', 'UP', 'DOWN']
+        if reverse_direction and reverse_direction in directions:
+            directions.remove(reverse_direction)
+        if primary_direction and primary_direction in directions:
+            directions.remove(primary_direction)
+            directions.insert(0, primary_direction)
+        return directions
+
+    def try_escape(self, directions, pacman_x, pacman_y, maze_layout):
+        for direction in directions:
+            if self.try_move(direction, pacman_x, pacman_y, maze_layout):
+                self.last_successful_move = direction
+                return True
+        return False
+
+    def get_new_directions(self, reverse_direction):
+        directions = ['LEFT', 'RIGHT', 'UP', 'DOWN']
+        if reverse_direction and reverse_direction in directions:
+            directions.remove(reverse_direction)
+        return directions
+
+    def try_move(self, direction, pacman_x, pacman_y, maze_layout):
+        if direction == 'LEFT' and maze_layout[pacman_y][pacman_x - 1] != 'x':
+            self.move('LEFT')
+            return True
+        elif direction == 'RIGHT' and maze_layout[pacman_y][pacman_x + 1] != 'x':
+            self.move('RIGHT')
+            return True
+        elif direction == 'UP' and maze_layout[pacman_y - 1][pacman_x] != 'x':
+            self.move('UP')
+            return True
+        elif direction == 'DOWN' and maze_layout[pacman_y + 1][pacman_x] != 'x':
+            self.move('DOWN')
+            return True
+        return False
+
 
     def update_power_up_status(self):
         if self.powered_up and pygame.time.get_ticks() - self.power_up_timer > self.powered_up_duration:

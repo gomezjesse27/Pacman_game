@@ -18,6 +18,9 @@ def game_loop(selected_algorithm):
     Pinky_instance = Pinky(screen, get_nodes(), maze_layout, (10,11))
     Blinky_instance = Blinky(screen, get_nodes(), maze_layout, (9,11))
     Clyde_instance = Clyde(screen, get_nodes(), maze_layout, (12,11))
+    ai_controlled = False
+    
+
     # Store the current direction of Pac-Man
     current_direction = None
     numericdirection = (0,0)
@@ -176,27 +179,39 @@ def game_loop(selected_algorithm):
         pacman_instance.update_power_up_status()
         score_text = pygame.font.SysFont(None, 36).render(f"Score: {pacman_instance.score}", True, (255, 255, 255))
         screen.blit(score_text, (460, 10))  # Display the score at the top left corner
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    current_direction = 'UP'
-                    numericdirection = (0, 1)
-                elif event.key == pygame.K_DOWN:
-                    current_direction = 'DOWN'
-                    numericdirection = (0, -1)
-                elif event.key == pygame.K_LEFT:
-                    current_direction = 'LEFT'
-                    numericdirection = (-1, 0)
-                elif event.key == pygame.K_RIGHT:
-                    current_direction = 'RIGHT'
-                    numericdirection = (1, 0)
-            if event.type == pygame.KEYUP:  # Reset direction when the key is released
-                if event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
-                    current_direction = None
-            if event.type == pygame.QUIT:
-                running = False
-                pygame.quit()
-                sys.exit()
+        # inside your game loop
+        
+        if ai_controlled:
+            pacman_instance.ai_move(maze_layout, [Blinky_instance, Pinky_instance, Inky_instance, Clyde_instance])  
+            
+        else:
+
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        current_direction = 'UP'
+                        numericdirection = (0, 1)
+                    elif event.key == pygame.K_DOWN:
+                        current_direction = 'DOWN'
+                        numericdirection = (0, -1)
+                    elif event.key == pygame.K_LEFT:
+                        current_direction = 'LEFT'
+                        numericdirection = (-1, 0)
+                    elif event.key == pygame.K_RIGHT:
+                        current_direction = 'RIGHT'
+                        numericdirection = (1, 0)
+                    elif event.key == pygame.K_q:
+                        ai_controlled = True
+                        
+                if event.type == pygame.KEYUP:  # Reset direction when the key is released
+                    if event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
+                        current_direction = None
                 
+            
+                if event.type == pygame.QUIT:
+                    running = False
+                    pygame.quit()
+                    sys.exit()
+            
         pygame.display.flip()
         

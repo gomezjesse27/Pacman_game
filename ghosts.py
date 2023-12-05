@@ -340,7 +340,7 @@ class Ghost:
     def move(self, selected_algorithm):
         # Increment the move counter and check if it'st time to move
         self.move_counter += 1
-        if self.move_counter < 5:  # Adjust this number for different speeds
+        if self.move_counter < 3:  # Adjust this number for different speeds
             return
         self.move_counter = 0  # Reset the counter
         
