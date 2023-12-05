@@ -182,32 +182,43 @@ def game_loop(selected_algorithm):
         # inside your game loop
         
         if ai_controlled:
-            pacman_instance.ai_move(maze_layout, [Blinky_instance, Pinky_instance, Inky_instance, Clyde_instance])  
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_q: 
+                            ai_controlled = False
+                            
+            pacman_instance.ai_move(maze_layout, [Blinky_instance, Pinky_instance, Inky_instance, Clyde_instance])
             
-        else:
+                    
 
+        else:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         current_direction = 'UP'
                         numericdirection = (0, 1)
+                        pacman_instance.speed = 7
                     elif event.key == pygame.K_DOWN:
                         current_direction = 'DOWN'
                         numericdirection = (0, -1)
+                        pacman_instance.speed = 7
                     elif event.key == pygame.K_LEFT:
                         current_direction = 'LEFT'
                         numericdirection = (-1, 0)
+                        pacman_instance.speed = 7
                     elif event.key == pygame.K_RIGHT:
                         current_direction = 'RIGHT'
                         numericdirection = (1, 0)
+                        pacman_instance.speed = 7
                     elif event.key == pygame.K_q:
-                        ai_controlled = True
+                        ai_controlled = True  # Toggle AI control mode
+                        pacman_instance.speed = 1
                         
                 if event.type == pygame.KEYUP:  # Reset direction when the key is released
                     if event.key in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
                         current_direction = None
+                   
                 
-            
                 if event.type == pygame.QUIT:
                     running = False
                     pygame.quit()

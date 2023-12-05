@@ -74,7 +74,7 @@ class PacMan:
         self.ai_move_frame_counter = 0
         self.ai_move_frame_threshold = 10  # Adjust this value to control AI speed
         self.last_successful_move = None
-        self.speed = 5
+        self.speed = 0
         
         # Load the vertical and horizontal animation sprites
         self.image_horiz = pygame.transform.scale(pygame.image.load('pacman-horiz.png'), (TILE_SIZE, TILE_SIZE))
@@ -143,6 +143,7 @@ class PacMan:
 
 
     def move(self, direction):
+        
         if not self.target:  # If not already moving towards a target
             if direction == 'UP':
                 target_pos = (self.rect.centerx, self.rect.centery - TILE_SIZE)
@@ -234,6 +235,7 @@ class PacMan:
 
         self.ai_move_frame_counter = 0
 
+
     def get_closest_ghost(self, ghosts):
         closest_ghost = None
         closest_dist = float('inf')
@@ -277,12 +279,24 @@ class PacMan:
         return directions
 
     def try_escape(self, directions, pacman_x, pacman_y, maze_layout):
+        available_directions = self.get_available_directions(pacman_x, pacman_y, maze_layout)
         for direction in directions:
-            if self.try_move(direction, pacman_x, pacman_y, maze_layout):
+            if direction in available_directions:
                 self.last_successful_move = direction
+                self.move(direction)
                 return True
         return False
-
+    def get_available_directions(self, pacman_x, pacman_y, maze_layout):
+        available_directions = []
+        if maze_layout[pacman_y][pacman_x - 1] != 'x':
+            available_directions.append('LEFT')
+        if maze_layout[pacman_y][pacman_x + 1] != 'x':
+            available_directions.append('RIGHT')
+        if maze_layout[pacman_y - 1][pacman_x] != 'x':
+            available_directions.append('UP')
+        if maze_layout[pacman_y + 1][pacman_x] != 'x':
+            available_directions.append('DOWN')
+        return available_directions
     def get_new_directions(self, reverse_direction):
         directions = ['LEFT', 'RIGHT', 'UP', 'DOWN']
         if reverse_direction and reverse_direction in directions:
